@@ -6,7 +6,7 @@
 /*   By: dehamad <dehamad@student.42abudhabi.ae>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/31 16:49:52 by dehamad           #+#    #+#             */
-/*   Updated: 2024/06/02 00:23:00 by dehamad          ###   ########.fr       */
+/*   Updated: 2024/06/02 01:59:11 by dehamad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,6 @@ typedef struct s_data
 	int				time_to_eat;
 	int				time_to_sleep;
 	int				must_eat_count;
-	int				full_philo;
 	int				dead_philo;
 	long			start_time;
 	pthread_mutex_t	print;

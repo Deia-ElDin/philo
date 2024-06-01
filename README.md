@@ -4,19 +4,12 @@ This project simulates the Dining Philosophers problem, a classic synchronizatio
 
 ## Table of Contents
 
-- [Dining Philosophers Problem](#dining-philosophers-problem)
-  - [Table of Contents](#table-of-contents)
+- [Dining Philosophers Problem](https://en.wikipedia.org/wiki/Dining_philosophers_problem)
   - [Overview](#overview)
   - [Getting Started](#getting-started)
     - [Prerequisites](#prerequisites)
     - [Building the Project](#building-the-project)
     - [Running the Simulation](#running-the-simulation)
-  - [Code Structure](#code-structure)
-  - [Philosophers' Actions](#philosophers-actions)
-  - [Monitor](#monitor)
-  - [Output](#output)
-  - [Contributing](#contributing)
-  - [License](#license)
 
 ## Overview
 
@@ -39,3 +32,4 @@ make
 ./philo [number_of_philosophers] [time_to_die] [time_to_eat] [time_to_sleep] [optional: number_of_times_each_philosopher_must_eat]
 
 ./philo 5 800 200 200
+```

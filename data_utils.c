@@ -6,7 +6,7 @@
 /*   By: dehamad <dehamad@student.42abudhabi.ae>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/31 22:42:38 by dehamad           #+#    #+#             */
-/*   Updated: 2024/06/02 00:26:09 by dehamad          ###   ########.fr       */
+/*   Updated: 2024/06/02 01:59:09 by dehamad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,7 +53,6 @@ void	data_init(char **av, t_data *data)
 	else
 		data->must_eat_count = -1;
 	data->start_time = get_current_time();
-	data->full_philo = 0;
 	data->dead_philo = 0;
 	data->philo = ph_calloc(data->nbr_of_philos, sizeof(t_philo));
 	data->forks = ph_calloc(data->nbr_of_philos, sizeof(pthread_mutex_t));
