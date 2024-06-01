@@ -6,7 +6,7 @@
 /*   By: dehamad <dehamad@student.42abudhabi.ae>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/01 02:20:28 by dehamad           #+#    #+#             */
-/*   Updated: 2024/06/01 23:09:07 by dehamad          ###   ########.fr       */
+/*   Updated: 2024/06/02 01:22:37 by dehamad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,11 +17,12 @@
 static void	philo_thinking(t_philo *philo)
 {
 	t_data	*data;
+	long	elapsed_time;
 
 	data = philo->data;
 	pthread_mutex_lock(&data->print);
-	printf("%ld %d is thinking\n",
-		get_current_time() - data->start_time, philo->id);
+	elapsed_time = get_current_time() - data->start_time;
+	printf("%ld %d is thinking.\n", elapsed_time, philo->id);
 	pthread_mutex_unlock(&data->print);
 }
 
@@ -30,15 +31,15 @@ static void	philo_thinking(t_philo *philo)
 static void	philo_eating(t_philo *philo)
 {
 	t_data	*data;
+	long	elapsed_time;
 
 	data = philo->data;
 	pthread_mutex_lock(&data->print);
 	pthread_mutex_lock(&data->forks[philo->left_fork]);
 	pthread_mutex_lock(&data->forks[philo->right_fork]);
-	printf("%ld %d has taken a fork\n",
-		get_current_time() - data->start_time, philo->id);
-	printf("%ld %d is eating\n",
-		get_current_time() - data->start_time, philo->id);
+	elapsed_time = get_current_time() - data->start_time;
+	printf("%ld %d has taken a fork.\n", elapsed_time, philo->id);
+	printf("%ld %d is eating.\n", elapsed_time, philo->id);
 	philo->last_meal_time = get_current_time();
 	philo->meals_eaten++;
 	usleep(data->time_to_eat * 1000);
@@ -52,11 +53,12 @@ static void	philo_eating(t_philo *philo)
 static void	philo_sleeping(t_philo *philo)
 {
 	t_data	*data;
+	long	elapsed_time;
 
 	data = philo->data;
 	pthread_mutex_lock(&data->print);
-	printf("%ld %d is sleeping.\n",
-		get_current_time() - data->start_time, philo->id);
+	elapsed_time = get_current_time() - data->start_time;
+	printf("%ld %d is sleeping.\n", elapsed_time, philo->id);
 	pthread_mutex_unlock(&data->print);
 	usleep(data->time_to_sleep * 1000);
 }
@@ -109,3 +111,8 @@ void	*philo_monitor(void *arg)
 	}
 	return (NULL);
 }
+
+
+/*
+ *	
+*/
