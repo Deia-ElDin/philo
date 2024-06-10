@@ -6,7 +6,7 @@
 /*   By: dehamad <dehamad@student.42abudhabi.ae>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/31 16:49:52 by dehamad           #+#    #+#             */
-/*   Updated: 2024/06/02 01:59:11 by dehamad          ###   ########.fr       */
+/*   Updated: 2024/06/10 20:36:30 by dehamad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,15 @@
 # include <pthread.h>
 # include <sys/time.h>
 
+enum
+{
+	THINKING,
+	FORK,
+	EATING,
+	SLEEPING,
+	DEAD,
+};
+
 typedef struct s_atoi
 {
 	long	nbr;
@@ -31,27 +40,39 @@ typedef struct s_atoi
 typedef struct s_philo
 {
 	int				id;
-	int				left_fork;
-	int				right_fork;
+	int				first_fork;
+	int				second_fork;
 	int				meals_eaten;
+	long			nbr_of_philos;
+	long			time_to_die;
+	long			time_to_eat;
+	long			time_to_sleep;
 	long			last_meal_time;
+	long			must_eat_count;
+	long			start_time;
+	pthread_mutex_t	meal_lock;
+	pthread_mutex_t	eat_counter;
 	struct s_data	*data;
 }	t_philo;
 
 typedef struct s_data
 {
-	int				nbr_of_philos;
-	int				time_to_die;
-	int				time_to_eat;
-	int				time_to_sleep;
-	int				must_eat_count;
-	int				dead_philo;
-	long			start_time;
+	long			nbr_of_philos;
+	long			must_eat_count;
+	long			time_to_die;
+	long			time_to_eat;
+	long			time_to_sleep;
+	bool			dead_philo;
 	pthread_mutex_t	print;
+	pthread_mutex_t	dead_mutex;
 	pthread_mutex_t	*forks;
+	int				*forks_value;
 	pthread_t		*threads;
 	t_philo			*philo;
 }	t_data;
+
+// ************ PARSING ************ //
+bool	parsing(int ac, char **av);
 
 // ************ DATA ************ //
 void	data_init(char **av, t_data *data);
@@ -62,9 +83,11 @@ void	*philo_routine(void *arg);
 void	*philo_monitor(void *arg);
 
 // ************ UTILS ************ //
-void	use_atoi(t_data *data, const char *av, int *counter);
-void	*ph_calloc(size_t count, size_t size);
-long	get_current_time(void);
+t_atoi	ph_atoi(const char *str);
+void	use_atoi(t_data *data, const char *av, long *counter);
+long	get_time(void);
+int		check_death(t_data *data);
+void	ph_usleep(t_data *data, long time);
 void	exit_error(t_data *data);
 
 #endif

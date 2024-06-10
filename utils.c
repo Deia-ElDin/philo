@@ -6,16 +6,13 @@
 /*   By: dehamad <dehamad@student.42abudhabi.ae>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/31 22:39:59 by dehamad           #+#    #+#             */
-/*   Updated: 2024/06/02 00:06:03 by dehamad          ###   ########.fr       */
+/*   Updated: 2024/06/10 21:07:44 by dehamad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
-/// @brief Used to convert a string to an integer
-/// @param str The string to convert
-/// @return A t_atoi struct containing the integer and an error flag
-static t_atoi	ph_atoi(const char *str)
+t_atoi	ph_atoi(const char *str)
 {
 	t_atoi	res;
 	int		sign;
@@ -44,11 +41,7 @@ static t_atoi	ph_atoi(const char *str)
 	return (res);
 }
 
-/// @brief It's a wrapper around the atoi function
-/// @param data The data struct
-/// @param av Each single argument
-/// @param counter The counter to set with in the data struct
-void	use_atoi(t_data *data, const char *av, int *counter)
+void	use_atoi(t_data *data, const char *av, long *counter)
 {
 	t_atoi	res;
 
@@ -60,39 +53,48 @@ void	use_atoi(t_data *data, const char *av, int *counter)
 	*counter = res.nbr;
 }
 
-/// @brief Allocates memory and initializes it to zero
-/// @param count The number of elements to allocate
-/// @param size The size of each element
-/// @return The pointer to the allocated memory
-void	*ph_calloc(size_t count, size_t size)
-{
-	void	*ptr;
-
-	if (size && count > (UINT_MAX / size))
-		return (NULL);
-	ptr = malloc(size * count);
-	if (!ptr)
-		return (NULL);
-	memset(ptr, 0, size * count);
-	return (ptr);
+int		check_death(t_data *data)
+{		
+	pthread_mutex_lock(&data->dead_mutex);
+	if (data->dead_philo)
+	{
+		pthread_mutex_unlock(&data->dead_mutex);
+		return (1);
+	}
+	pthread_mutex_unlock(&data->dead_mutex);
+	return (0);
 }
 
-/// @brief Get the current time in milliseconds
-/// @param void
-/// @return The current time in milliseconds
-long	get_current_time(void)
+int	check_forks(t_philo *philo, int first_fork, int second_fork)
 {
-	struct timeval	time;
-
-	gettimeofday(&time, NULL);
-	return ((time.tv_sec * 1000) + (time.tv_usec / 1000));
+	pthread_mutex_lock(&(philo->data->forks[first_fork]));
+	if (philo->data->forks_value[first_fork] == philo->id)
+	{
+		pthread_mutex_unlock(&(philo->data->forks[first_fork]));
+		return (1);
+	}
+	pthread_mutex_lock(&(philo->data->forks[second_fork]));
+	if (philo->data->forks_value[second_fork] == philo->id)
+	{
+		pthread_mutex_unlock(&(philo->data->forks[second_fork]));
+		pthread_mutex_unlock(&(philo->data->forks[first_fork]));
+		return (1);
+	}
+	philo_print(philo, FORK);
+	philo_print(philo, FORK);
+	philo_print(philo, EATING);
+	return (0);
 }
 
-/// @brief Exit the program with an error message
-/// @param data The data struct
-void	exit_error(t_data *data)
+void	ph_usleep(t_data *data, long time)
 {
-	write(2, "Error\n", 6);
-	data_cleanup(data);
-	exit(EXIT_FAILURE);
+	long	start;
+
+	start = get_time();
+	while ((get_time() - start) < time)
+	{	
+		usleep(500);
+		if (check_death(data))
+			break ;
+	}
 }

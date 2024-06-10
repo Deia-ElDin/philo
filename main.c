@@ -6,45 +6,25 @@
 /*   By: dehamad <dehamad@student.42abudhabi.ae>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/31 16:50:38 by dehamad           #+#    #+#             */
-/*   Updated: 2024/06/02 00:42:52 by dehamad          ###   ########.fr       */
+/*   Updated: 2024/06/10 21:07:20 by dehamad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
-// void	threads_create(t_data *data, pthread_t *routine_thread)
-// {
-// 	pthread_t	monitor_thread;
-// 	t_philo		philo;
-// 	int			i;
+void	exit_error(t_data *data)
+{
+	data_cleanup(data);
+	exit(EXIT_FAILURE);
+}
 
-// 	i = -1;
-// 	while (++i < data->nbr_of_philos)
-// 	{
-// 		routine_thread = data->threads[i];
-// 		philo = data->philo[i];
-// 		if (pthread_create(&routine_thread, NULL, philo_routine, &philo))
-// 			exit_error(data);
-// 	}
-// 	if (pthread_create(&monitor_thread, NULL, philo_monitor, data))
-// 		exit_error(data);
+long	get_time(void)
+{
+	struct timeval	time;
 
-// }
-
-// void	threads_join(t_data *data)
-// {
-// 	int	i;
-
-// 	i = -1;
-// 	while (++i < data->nbr_of_philos)
-// 	{
-// 		routine_thread = data->threads[i];
-// 	}
-// 		if (pthread_join(threads[i], NULL))
-// 			exit_error(&data);
-// 	if (pthread_join(monitor_thread, NULL))
-// 		exit_error(&data);
-// }
+	gettimeofday(&time, NULL);
+	return ((time.tv_sec * 1000) + (time.tv_usec / 1000));
+}
 
 int	main(int ac, char **av)
 {
@@ -53,7 +33,7 @@ int	main(int ac, char **av)
 	pthread_t	monitor_thread;
 	int			i;
 
-	if (ac != 5 && ac != 6)
+	if (!parsing(ac, av))
 		return (EXIT_FAILURE);
 	data_init(av, &data);
 	threads = data.threads;
@@ -69,6 +49,7 @@ int	main(int ac, char **av)
 			exit_error(&data);
 	if (pthread_join(monitor_thread, NULL))
 		exit_error(&data);
+	// check_philo_meals(&data);
 	return (data_cleanup(&data), EXIT_SUCCESS);
 }
 

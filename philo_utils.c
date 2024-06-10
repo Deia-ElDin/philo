@@ -6,66 +6,68 @@
 /*   By: dehamad <dehamad@student.42abudhabi.ae>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/01 02:20:28 by dehamad           #+#    #+#             */
-/*   Updated: 2024/06/02 01:22:37 by dehamad          ###   ########.fr       */
+/*   Updated: 2024/06/10 21:10:49 by dehamad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
-/// @brief Deals with the thinking state of a philosopher
-/// @param philo The philosopher
-static void	philo_thinking(t_philo *philo)
+static void	philo_print(t_philo *philo, int status)
 {
 	t_data	*data;
-	long	elapsed_time;
+	long	start_time;
+	int		id;
 
 	data = philo->data;
+	if (check_death(data))
+		return ;
+	pthread_mutex_lock(&philo->meal_lock);
+	start_time = philo->start_time;
+	pthread_mutex_unlock(&philo->meal_lock);
+	id = philo->id;
 	pthread_mutex_lock(&data->print);
-	elapsed_time = get_current_time() - data->start_time;
-	printf("%ld %d is thinking.\n", elapsed_time, philo->id);
+	if (status == THINKING)
+		printf("%ld %d is thinking.\n", get_time() - start_time, id);
+	else if (status == FORK)
+		printf("%ld %d has taken a fork.\n", get_time() - start_time, id);
+	else if (status == EATING)
+		printf("%ld %d is eating.\n", get_time() - start_time, id);
+	else if (status == SLEEPING)
+		printf("%ld %d is sleeping.\n", get_time() - start_time, id);
+	else if (status == DEAD)
+		printf("%ld %d died\n", get_time() - start_time, id);
 	pthread_mutex_unlock(&data->print);
 }
 
-/// @brief Deals with the eating state of a philosopher
-/// @param philo The philosopher
-static void	philo_eating(t_philo *philo)
+static void	philo_life(t_philo *philo)
 {
-	t_data	*data;
-	long	elapsed_time;
+	int	first_fork;
+	int	second_fork;
 
-	data = philo->data;
-	pthread_mutex_lock(&data->print);
-	pthread_mutex_lock(&data->forks[philo->left_fork]);
-	pthread_mutex_lock(&data->forks[philo->right_fork]);
-	elapsed_time = get_current_time() - data->start_time;
-	printf("%ld %d has taken a fork.\n", elapsed_time, philo->id);
-	printf("%ld %d is eating.\n", elapsed_time, philo->id);
-	philo->last_meal_time = get_current_time();
-	philo->meals_eaten++;
-	usleep(data->time_to_eat * 1000);
-	pthread_mutex_unlock(&data->forks[philo->left_fork]);
-	pthread_mutex_unlock(&data->forks[philo->right_fork]);
-	pthread_mutex_unlock(&data->print);
+	first_fork = philo->first_fork;
+	second_fork = philo->second_fork;
+	if (check_forks(philo, first_fork, second_fork))
+		return ;
+	pthread_mutex_lock(&philo->eat_counter);
+	philo->last_meal_time = get_time();
+	philo->must_eat_count--;
+	pthread_mutex_unlock(&philo->eat_counter);
+	ph_usleep(philo->data, philo->time_to_eat);
+	philo->data->forks_value[first_fork] = philo->id;
+	philo->data->forks_value[second_fork] = philo->id;
+	if (check_death(philo->data))
+	{
+		pthread_mutex_unlock(&(philo->data->forks[second_fork]));
+		pthread_mutex_unlock(&(philo->data->forks[first_fork]));
+		return ;
+	}
+	pthread_mutex_unlock(&(philo->data->forks[second_fork]));
+	pthread_mutex_unlock(&philo->data->forks[first_fork]);
+	philo_print(philo, SLEEPING);
+	ph_usleep(philo->data, philo->time_to_sleep);
+	philo_print(philo, THINKING);
 }
 
-/// @brief Deals with the sleeping state of a philosopher
-/// @param philo The philosopher
-static void	philo_sleeping(t_philo *philo)
-{
-	t_data	*data;
-	long	elapsed_time;
-
-	data = philo->data;
-	pthread_mutex_lock(&data->print);
-	elapsed_time = get_current_time() - data->start_time;
-	printf("%ld %d is sleeping.\n", elapsed_time, philo->id);
-	pthread_mutex_unlock(&data->print);
-	usleep(data->time_to_sleep * 1000);
-}
-
-/// @brief The routine of a philosopher
-/// @param arg The type casted philosopher
-/// @return The return value of the thread, Null if not needed
 void	*philo_routine(void *arg)
 {
 	t_philo	*philo;
@@ -73,46 +75,54 @@ void	*philo_routine(void *arg)
 
 	philo = (t_philo *)arg;
 	data = philo->data;
-	while (1)
+	pthread_mutex_lock(&philo->meal_lock);
+	philo->start_time = get_time();
+	pthread_mutex_unlock(&philo->meal_lock);
+	usleep(5);
+	if (philo->id % 2 == 0)
+		ph_usleep(philo->data, philo->time_to_eat / 2);
+	while (philo->must_eat_count)
 	{
-		philo_thinking(philo);
-		philo_eating(philo);
-		philo_sleeping(philo);
+		if (check_death(data))
+			break;
+		philo_life(philo);
 	}
 	return (NULL);
 }
 
-/// @brief Monitors the philosophers
-/// @param arg The data struct type casted to void *
-/// @return The return value of the thread, Null if not needed
 void	*philo_monitor(void *arg)
 {
 	t_data	*data;
-	long	current_time;
-	long	death_time;
 	int		i;
+	int		count;
 
 	data = (t_data *)arg;
-	i = 0;
+	count = 0;
 	while (1)
 	{
-		current_time = get_current_time();
-		if (current_time - data->philo[i].last_meal_time > data->time_to_die)
+		i = -1;
+		while (++i < data->nbr_of_philos)
 		{
-			death_time = current_time - data->start_time;
-			pthread_mutex_lock(&data->print);
-			printf("%ld %d died\n", death_time, data->philo[i].id);
-			pthread_mutex_unlock(&data->print);
-			data->dead_philo = 1;
-			return (NULL);
+			pthread_mutex_lock(&data->philo[i].eat_counter);
+			if (get_time() - data->philo[i].last_meal_time
+				> data->philo[i].time_to_die
+				&& data->philo[i].must_eat_count != 0)
+			{
+				philo_print(&data->philo[i], DEAD);
+				pthread_mutex_lock(&data->dead_mutex);
+				data->dead_philo = true;
+				pthread_mutex_unlock(&data->dead_mutex);
+				pthread_mutex_unlock(&data->philo[i].eat_counter);
+				return (NULL);
+			}
+			if (data->philo[i].must_eat_count == 0)
+				count++;
+			pthread_mutex_unlock(&data->philo[i].eat_counter);
 		}
-		i = (i + 1) % data->nbr_of_philos;
-		usleep(1000);
+		usleep(1);
+		if (count >= data->nbr_of_philos)
+			return (NULL);
 	}
 	return (NULL);
 }
 
-
-/*
- *	
-*/

@@ -6,7 +6,7 @@
 /*   By: dehamad <dehamad@student.42abudhabi.ae>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/31 22:42:38 by dehamad           #+#    #+#             */
-/*   Updated: 2024/06/02 01:59:09 by dehamad          ###   ########.fr       */
+/*   Updated: 2024/06/10 20:36:22 by dehamad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,29 +21,40 @@ static void	data_mutex(t_data *data)
 	{
 		pthread_mutex_init(&data->forks[i], NULL);
 		data->philo[i].id = i + 1;
-		data->philo[i].left_fork = i;
-		data->philo[i].right_fork = (i + 1) % data->nbr_of_philos;
+		if (data->philo[i].id % 2 == 0)
+		{
+			data->philo[i].first_fork = i;
+			data->philo[i].second_fork = (i + 1) % data->nbr_of_philos;
+		}
+		else
+		{
+			data->philo[i].first_fork = (i + 1) % data->nbr_of_philos;
+			data->philo[i].second_fork = i;
+		}
+		data->forks_value[i] = -1;
 		data->philo[i].meals_eaten = 0;
-		data->philo[i].last_meal_time = data->start_time;
+		data->philo[i].last_meal_time = get_time();
+		data->philo[i].nbr_of_philos = data->nbr_of_philos;
+		data->philo[i].time_to_die = data->time_to_die;
+		data->philo[i].time_to_eat = data->time_to_eat;
+		data->philo[i].time_to_sleep = data->time_to_sleep;
+		data->philo[i].must_eat_count = data->must_eat_count;
 		data->philo[i].data = data;
-		printf("philo[%d].id: %d\n", i, data->philo[i].id);
-		printf("philo[%d].left_fork: %d\n", i, data->philo[i].left_fork);
-		printf("philo[%d].right_fork: %d\n", i, data->philo[i].right_fork);
-		printf("philo[%d].meals_eaten: %d\n", i, data->philo[i].meals_eaten);
-		printf("philo[%d].last_meal_time: %ld\n", i, data->philo[i].last_meal_time);
-		printf("philo[%d].data: %p\n", i, data->philo[i].data);
+		pthread_mutex_init(&data->philo[i].meal_lock, NULL);
+		pthread_mutex_init(&data->philo[i].eat_counter, NULL);
 	}
 	pthread_mutex_init(&data->print, NULL);
+	pthread_mutex_init(&data->dead_mutex, NULL);
 }
 
-/// @brief Initializes the data struct
-/// @param av The arguments passed to the program
-/// @param data The data struct
 void	data_init(char **av, t_data *data)
 {
+    int size;
+    
 	data->forks = NULL;
 	data->threads = NULL;
 	data->philo = NULL;
+	data->dead_philo = false;
 	use_atoi(data, av[1], &data->nbr_of_philos);
 	use_atoi(data, av[2], &data->time_to_die);
 	use_atoi(data, av[3], &data->time_to_eat);
@@ -52,24 +63,16 @@ void	data_init(char **av, t_data *data)
 		use_atoi(data, av[5], &data->must_eat_count);
 	else
 		data->must_eat_count = -1;
-	data->start_time = get_current_time();
-	data->dead_philo = 0;
-	data->philo = ph_calloc(data->nbr_of_philos, sizeof(t_philo));
-	data->forks = ph_calloc(data->nbr_of_philos, sizeof(pthread_mutex_t));
-	data->threads = ph_calloc(data->nbr_of_philos, sizeof(pthread_t));
+    size = data->nbr_of_philos;
+	data->philo = malloc(size * sizeof(t_philo));
+	data->forks = malloc(size * sizeof(pthread_mutex_t));
+	data->threads = malloc(size * sizeof(pthread_t));
+	data->forks_value = malloc(size * sizeof(int));
 	if (!data->philo || !data->forks || !data->threads)
 		exit_error(data);
 	data_mutex(data);
-	printf("nbr_of_philos: %d\n", data->nbr_of_philos);
-	printf("time_to_die: %d\n", data->time_to_die);
-	printf("time_to_eat: %d\n", data->time_to_eat);
-	printf("time_to_sleep: %d\n", data->time_to_sleep);
-	printf("must_eat_count: %d\n", data->must_eat_count);
-	printf("start_time: %ld\n", data->start_time);
 }
 
-/// @brief Cleans up the data struct
-/// @param data The data struct
 void	data_cleanup(t_data *data)
 {
 	int	i;
@@ -80,14 +83,18 @@ void	data_cleanup(t_data *data)
 	{
 		i = -1;
 		while (++i < data->nbr_of_philos)
+		{
 			pthread_mutex_destroy(&data->forks[i]);
+			pthread_mutex_destroy(&data->philo[i].meal_lock);
+			pthread_mutex_destroy(&data->philo[i].eat_counter);
+		}
 		free(data->forks);
 	}
 	if (data->philo)
 		free(data->philo);
 	pthread_mutex_destroy(&data->print);
+	pthread_mutex_destroy(&data->dead_mutex);
 }
-
 
 /*
 *	pthread_mutex_init:
@@ -114,3 +121,17 @@ void	data_cleanup(t_data *data)
  	- locks a mutex
 	- the argument is the mutex to lock
 */
+
+// printf("philo[%d].id: %d\n", i, data->philo[i].id);
+// printf("philo[%d].left_fork: %d\n", i, data->philo[i].left_fork);
+// printf("philo[%d].right_fork: %d\n", i, data->philo[i].right_fork);
+// printf("philo[%d].meals_eaten: %d\n", i, data->philo[i].meals_eaten);
+// printf("philo[%d].last_meal_time: %ld\n", i, data->philo[i].last_meal_time);
+// printf("philo[%d].data: %p\n", i, data->philo[i].data);
+
+// printf("nbr_of_philos: %d\n", data->nbr_of_philos);
+// printf("time_to_die: %d\n", data->time_to_die);
+// printf("time_to_eat: %d\n", data->time_to_eat);
+// printf("time_to_sleep: %d\n", data->time_to_sleep);
+// printf("must_eat_count: %d\n", data->must_eat_count);
+// printf("start_time: %ld\n", data->start_time);
