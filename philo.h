@@ -6,7 +6,7 @@
 /*   By: dehamad <dehamad@student.42abudhabi.ae>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/31 16:49:52 by dehamad           #+#    #+#             */
-/*   Updated: 2024/06/10 20:36:30 by dehamad          ###   ########.fr       */
+/*   Updated: 2024/06/16 17:02:32 by dehamad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,19 +75,20 @@ typedef struct s_data
 bool	parsing(int ac, char **av);
 
 // ************ DATA ************ //
-void	data_init(char **av, t_data *data);
+int		data_init(char **av, t_data *data);
 void	data_cleanup(t_data *data);
 
 // ************ PHILO ************ //
+void	philo_print(t_philo *philo, int status);
 void	*philo_routine(void *arg);
 void	*philo_monitor(void *arg);
 
 // ************ UTILS ************ //
 t_atoi	ph_atoi(const char *str);
-void	use_atoi(t_data *data, const char *av, long *counter);
+int		use_atoi(const char *av, long *counter);
 long	get_time(void);
 int		check_death(t_data *data);
+int		check_forks(t_philo *philo, int first_fork, int second_fork);
 void	ph_usleep(t_data *data, long time);
-void	exit_error(t_data *data);
 
 #endif

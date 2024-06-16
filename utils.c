@@ -6,7 +6,7 @@
 /*   By: dehamad <dehamad@student.42abudhabi.ae>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/31 22:39:59 by dehamad           #+#    #+#             */
-/*   Updated: 2024/06/10 21:07:44 by dehamad          ###   ########.fr       */
+/*   Updated: 2024/06/16 16:54:02 by dehamad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,20 +41,21 @@ t_atoi	ph_atoi(const char *str)
 	return (res);
 }
 
-void	use_atoi(t_data *data, const char *av, long *counter)
+int	use_atoi(const char *av, long *counter)
 {
 	t_atoi	res;
 
 	if (!av || !*av)
-		exit_error(data);
+		return (1);
 	res = ph_atoi(av);
 	if (res.error)
-		exit_error(data);
+		return (1);
 	*counter = res.nbr;
+	return (0);
 }
 
-int		check_death(t_data *data)
-{		
+int	check_death(t_data *data)
+{
 	pthread_mutex_lock(&data->dead_mutex);
 	if (data->dead_philo)
 	{
@@ -92,7 +93,7 @@ void	ph_usleep(t_data *data, long time)
 
 	start = get_time();
 	while ((get_time() - start) < time)
-	{	
+	{
 		usleep(500);
 		if (check_death(data))
 			break ;

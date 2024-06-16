@@ -6,17 +6,11 @@
 /*   By: dehamad <dehamad@student.42abudhabi.ae>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/31 16:50:38 by dehamad           #+#    #+#             */
-/*   Updated: 2024/06/10 21:07:20 by dehamad          ###   ########.fr       */
+/*   Updated: 2024/06/16 17:11:38 by dehamad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
-
-void	exit_error(t_data *data)
-{
-	data_cleanup(data);
-	exit(EXIT_FAILURE);
-}
 
 long	get_time(void)
 {
@@ -34,23 +28,23 @@ int	main(int ac, char **av)
 	int			i;
 
 	if (!parsing(ac, av))
-		return (EXIT_FAILURE);
-	data_init(av, &data);
+		return (1);
+	if (data_init(av, &data))
+		return (data_cleanup(&data), 1);
 	threads = data.threads;
 	i = -1;
 	while (++i < data.nbr_of_philos)
 		if (pthread_create(&threads[i], NULL, philo_routine, &data.philo[i]))
-			exit_error(&data);
+			return (data_cleanup(&data), 1);
 	if (pthread_create(&monitor_thread, NULL, philo_monitor, &data))
-		exit_error(&data);
+		return (data_cleanup(&data), 1);
 	i = -1;
 	while (++i < data.nbr_of_philos)
 		if (pthread_join(threads[i], NULL))
-			exit_error(&data);
+			return (data_cleanup(&data), 1);
 	if (pthread_join(monitor_thread, NULL))
-		exit_error(&data);
-	// check_philo_meals(&data);
-	return (data_cleanup(&data), EXIT_SUCCESS);
+		return (data_cleanup(&data), 1);
+	return (data_cleanup(&data), 0);
 }
 
 /*
