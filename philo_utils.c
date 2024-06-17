@@ -6,7 +6,7 @@
 /*   By: dehamad <dehamad@student.42abudhabi.ae>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/01 02:20:28 by dehamad           #+#    #+#             */
-/*   Updated: 2024/06/17 18:36:51 by dehamad          ###   ########.fr       */
+/*   Updated: 2024/06/17 18:57:44 by dehamad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,6 +63,8 @@ static void	philo_life(t_philo *philo)
 		return ;
 	philo_print(philo, SLEEPING);
 	ph_usleep(philo->data, philo->time_to_sleep);
+	if (check_death(philo->data))
+		return ;
 	philo_print(philo, THINKING);
 }
 
