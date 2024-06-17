@@ -6,7 +6,7 @@
 #    By: dehamad <dehamad@student.42abudhabi.ae>    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/05/31 16:49:23 by dehamad           #+#    #+#              #
-#    Updated: 2024/06/16 17:01:52 by dehamad          ###   ########.fr        #
+#    Updated: 2024/06/17 18:47:49 by dehamad          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -19,7 +19,7 @@ PTHREAD_FLAGS = -lpthread
 SRC = main.c parsing.c data_utils.c philo_utils.c utils.c
 OBJ = $(SRC:.c=.o)
 
-ARGS = 20 410 200 200 8
+ARGS = 2 410 200 200
 
 all: $(NAME)
 
@@ -37,13 +37,13 @@ re: fclean all
 sanitize: CFLAGS += -g3 -fsanitize=address
 sanitize: re
 
-args: all clean
+start: re clean
 	./$(NAME) $(ARGS)
 	
-valgrind: 
+valgrind: re clean
 	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./$(NAME) $(ARGS)
-
-helgrind:
+	
+helgrind: re clean
 	valgrind -s --tool=helgrind --tool=drd ./$(NAME) $(ARGS)
 
-.PHONY: all clean fclean re sanitize valgrind helgrind
+.PHONY: all clean fclean re sanitize start valgrind helgrind

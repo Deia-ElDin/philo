@@ -6,7 +6,7 @@
 /*   By: dehamad <dehamad@student.42abudhabi.ae>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/31 16:49:52 by dehamad           #+#    #+#             */
-/*   Updated: 2024/06/16 17:02:32 by dehamad          ###   ########.fr       */
+/*   Updated: 2024/06/17 16:59:36 by dehamad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,6 @@
 # include <stdio.h>
 # include <stdlib.h>
 # include <unistd.h>
-# include <stdbool.h>
 # include <limits.h>
 # include <string.h>
 # include <pthread.h>
@@ -34,7 +33,7 @@ enum
 typedef struct s_atoi
 {
 	long	nbr;
-	bool	error;
+	int		error;
 }	t_atoi;
 
 typedef struct s_philo
@@ -62,7 +61,7 @@ typedef struct s_data
 	long			time_to_die;
 	long			time_to_eat;
 	long			time_to_sleep;
-	bool			dead_philo;
+	int				dead_philo;
 	pthread_mutex_t	print;
 	pthread_mutex_t	dead_mutex;
 	pthread_mutex_t	*forks;
@@ -72,7 +71,7 @@ typedef struct s_data
 }	t_data;
 
 // ************ PARSING ************ //
-bool	parsing(int ac, char **av);
+int		parsing(int ac, char **av);
 
 // ************ DATA ************ //
 int		data_init(char **av, t_data *data);

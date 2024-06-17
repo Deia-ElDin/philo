@@ -6,7 +6,7 @@
 /*   By: dehamad <dehamad@student.42abudhabi.ae>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/31 22:42:38 by dehamad           #+#    #+#             */
-/*   Updated: 2024/06/16 16:45:14 by dehamad          ###   ########.fr       */
+/*   Updated: 2024/06/17 18:36:10 by dehamad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,7 @@ static void	data_values(t_data *data, int i)
 	data->forks_value[i] = -1;
 	data->philo[i].meals_eaten = 0;
 	data->philo[i].last_meal_time = get_time();
+	data->philo[i].start_time = get_time();
 	data->philo[i].nbr_of_philos = data->nbr_of_philos;
 	data->philo[i].time_to_die = data->time_to_die;
 	data->philo[i].time_to_eat = data->time_to_eat;
@@ -44,9 +45,9 @@ static void	data_mutex(t_data *data)
 	while (++i < data->nbr_of_philos)
 	{
 		pthread_mutex_init(&data->forks[i], NULL);
-		data_values(data, i);
 		pthread_mutex_init(&data->philo[i].meal_lock, NULL);
 		pthread_mutex_init(&data->philo[i].eat_counter, NULL);
+		data_values(data, i);
 	}
 	pthread_mutex_init(&data->print, NULL);
 	pthread_mutex_init(&data->dead_mutex, NULL);
@@ -59,7 +60,8 @@ int	data_init(char **av, t_data *data)
 	data->forks = NULL;
 	data->threads = NULL;
 	data->philo = NULL;
-	data->dead_philo = false;
+	data->forks_value = NULL;
+	data->dead_philo = 0;
 	if (use_atoi(av[1], &data->nbr_of_philos)
 		|| use_atoi(av[2], &data->time_to_die)
 		|| use_atoi(av[3], &data->time_to_eat)
@@ -74,7 +76,7 @@ int	data_init(char **av, t_data *data)
 	data->forks = malloc(size * sizeof(pthread_mutex_t));
 	data->threads = malloc(size * sizeof(pthread_t));
 	data->forks_value = malloc(size * sizeof(int));
-	if (!data->philo || !data->forks || !data->threads)
+	if (!data->philo || !data->forks || !data->threads || !data->forks_value)
 		return (1);
 	data_mutex(data);
 	return (0);
@@ -84,21 +86,27 @@ void	data_cleanup(t_data *data)
 {
 	int	i;
 
-	if (data->threads)
-		free(data->threads);
 	if (data->forks)
 	{
 		i = -1;
 		while (++i < data->nbr_of_philos)
-		{
 			pthread_mutex_destroy(&data->forks[i]);
-			pthread_mutex_destroy(&data->philo[i].meal_lock);
-			pthread_mutex_destroy(&data->philo[i].eat_counter);
-		}
 		free(data->forks);
 	}
 	if (data->philo)
+	{
+		i = -1;
+		while (++i < data->nbr_of_philos)
+		{
+			pthread_mutex_destroy(&data->philo[i].meal_lock);
+			pthread_mutex_destroy(&data->philo[i].eat_counter);
+		}
 		free(data->philo);
+	}
+	if (data->threads)
+		free(data->threads);
+	if (data->forks_value)
+		free(data->forks_value);
 	pthread_mutex_destroy(&data->print);
 	pthread_mutex_destroy(&data->dead_mutex);
 }

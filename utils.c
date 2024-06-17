@@ -6,7 +6,7 @@
 /*   By: dehamad <dehamad@student.42abudhabi.ae>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/31 22:39:59 by dehamad           #+#    #+#             */
-/*   Updated: 2024/06/16 16:54:02 by dehamad          ###   ########.fr       */
+/*   Updated: 2024/06/17 17:07:27 by dehamad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@ t_atoi	ph_atoi(const char *str)
 	int		sign;
 
 	res.nbr = 0;
-	res.error = false;
+	res.error = 0;
 	sign = 1;
 	while (*str == ' ' || (*str >= 9 && *str <= 13))
 		str++;
@@ -32,9 +32,9 @@ t_atoi	ph_atoi(const char *str)
 	{
 		res.nbr = (res.nbr * 10) + (*str - '0');
 		if (res.nbr > INT_MAX && sign > 0)
-			return (res.error = true, res.nbr = 0, res);
+			return (res.error = 1, res.nbr = 0, res);
 		if (res.nbr * sign < INT_MIN && sign < 0)
-			return (res.error = true, res.nbr = 0, res);
+			return (res.error = 1, res.nbr = 0, res);
 		str++;
 	}
 	res.nbr *= sign;

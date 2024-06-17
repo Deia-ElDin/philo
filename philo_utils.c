@@ -6,7 +6,7 @@
 /*   By: dehamad <dehamad@student.42abudhabi.ae>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/01 02:20:28 by dehamad           #+#    #+#             */
-/*   Updated: 2024/06/16 17:24:47 by dehamad          ###   ########.fr       */
+/*   Updated: 2024/06/17 18:36:51 by dehamad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,7 @@ void	philo_print(t_philo *philo, int status)
 	else if (status == SLEEPING)
 		printf("%ld %d is sleeping.\n", get_time() - start_time, id);
 	else if (status == DEAD)
-		printf("%ld %d died\n", get_time() - start_time, id);
+		printf("%ld %d died.\n", get_time() - start_time, id);
 	pthread_mutex_unlock(&data->print);
 }
 
@@ -46,6 +46,8 @@ static void	philo_life(t_philo *philo)
 
 	first_fork = philo->first_fork;
 	second_fork = philo->second_fork;
+	if (check_death(philo->data))
+		return ;
 	if (check_forks(philo, first_fork, second_fork))
 		return ;
 	pthread_mutex_lock(&philo->eat_counter);
@@ -55,14 +57,10 @@ static void	philo_life(t_philo *philo)
 	ph_usleep(philo->data, philo->time_to_eat);
 	philo->data->forks_value[first_fork] = philo->id;
 	philo->data->forks_value[second_fork] = philo->id;
-	if (check_death(philo->data))
-	{
-		pthread_mutex_unlock(&(philo->data->forks[second_fork]));
-		pthread_mutex_unlock(&(philo->data->forks[first_fork]));
-		return ;
-	}
 	pthread_mutex_unlock(&(philo->data->forks[second_fork]));
-	pthread_mutex_unlock(&philo->data->forks[first_fork]);
+	pthread_mutex_unlock(&(philo->data->forks[first_fork]));
+	if (check_death(philo->data))
+		return ;
 	philo_print(philo, SLEEPING);
 	ph_usleep(philo->data, philo->time_to_sleep);
 	philo_print(philo, THINKING);
@@ -75,9 +73,6 @@ void	*philo_routine(void *arg)
 
 	philo = (t_philo *)arg;
 	data = philo->data;
-	pthread_mutex_lock(&philo->meal_lock);
-	philo->start_time = get_time();
-	pthread_mutex_unlock(&philo->meal_lock);
 	if (philo->data->nbr_of_philos == 1)
 	{
 		philo_print(philo, FORK);
@@ -109,7 +104,7 @@ int	philo_still_alive(t_data *data, int *count)
 		{
 			philo_print(&data->philo[i], DEAD);
 			pthread_mutex_lock(&data->dead_mutex);
-			data->dead_philo = true;
+			data->dead_philo = 1;
 			pthread_mutex_unlock(&data->dead_mutex);
 			pthread_mutex_unlock(&data->philo[i].eat_counter);
 			return (0);
