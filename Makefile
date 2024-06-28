@@ -6,7 +6,7 @@
 #    By: dehamad <dehamad@student.42abudhabi.ae>    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/05/31 16:49:23 by dehamad           #+#    #+#              #
-#    Updated: 2024/06/17 18:57:07 by dehamad          ###   ########.fr        #
+#    Updated: 2024/06/28 17:32:34 by dehamad          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -19,7 +19,7 @@ PTHREAD_FLAGS = -lpthread
 SRC = main.c parsing.c data_utils.c philo_utils.c utils.c
 OBJ = $(SRC:.c=.o)
 
-ARGS = 7 410 200 200 5  
+ARGS = 100 420 200 200
 
 all: $(NAME)
 
